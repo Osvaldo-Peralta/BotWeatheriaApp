@@ -141,14 +141,46 @@ bot.onText(/\/start/, (msg) => {
 });
 
 // Manejador para el comando /units seguido de las unidades (metric o imperial)
-bot.onText(/\/units (.+)/, (msg, match) => {
+/* Cambio de leer texto a "escuchar si uno de los botones es seleccionado" */
+bot.onText(/\/units/, (msg) => {
   const chatId = msg.chat.id;
-  const units = match[1];
 
-  if (units === "metric" || units === "imperial") {
+  // Enviar botones para seleccionar unidades
+  const opts = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: "Celsius (°C)", callback_data: "units_metric" },
+          { text: "Fahrenheit (°F)", callback_data: "units_imperial" },
+        ],
+      ],
+    },
+  };
+  bot.sendMessage(chatId, "Selecciona la unidad de medida:", opts);
+});
+
+bot.on("callback_query", (callbackQuery) => {
+  const msg = callbackQuery.message;
+  const chatId = msg.chat.id;
+  const data = callbackQuery.data;
+
+  if (data === "units_metric" || data === "units_imperial") {
+    const units = data === "units_metric" ? "metric" : "imperial"; // recibimos la unidad de medida
+
     // Guardar la preferencia del usuario
     userPreferences[chatId] = units;
-    bot.sendMessage(chatId, `Preferencia de unidades actualizada a ${units}.`);
+    const unitText = units === "metric" ? "Celsius (°C)" : "Farenheit (°F)";
+    bot.sendMessage(
+      chatId,
+      `Preferencia de unidades actualizada a ${unitText}.`
+    );
+
+    // Editar el mensaje original para quitar el teclado
+    
+    bot.editMessageReplyMarkup(
+      { inline_keyboard: [] },
+      { chat_id: chatId, message_id: msg.message_id }
+    );
   } else {
     bot.sendMessage(chatId, "Unidades no válidas. Usa 'metric' o 'imperial'.");
   }
@@ -174,7 +206,7 @@ bot.onText(/\/help/, (msg) => {
     /start - Inicia el bot.
     /w <Ciudad> - Obtener el clima de una ciudad.
     /f <Ciudad> - Obtener el pronostico del dia en intervalos de 3 horas.
-    /units <imperial|metric> - Cambiar las unidades de medida.
+    /units - Cambiar las unidades de medida.
     /currentunits - Ver la unidad de medida actual.
     /help - Mostrar ayuda.
     `;
