@@ -130,6 +130,43 @@ bot.onText(/\/5days (.+)/, (msg, match) => {
     });
 });
 
+bot.onText(/\/alert (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const cityName = match[1];
+
+  try {
+    const geoResponse = await axios.get(
+      `http://api.openweathermap.org/geo/1.0/direct?q=${cityName}&limit=1&appid=${weatherAPI_Key}`
+    );
+
+    const { lat, lon } = geoResponse.data[0];
+
+    const weatherResponse = await axios.get(
+      `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&appid=${weatherAPI_Key}&units=metric&lang=es`
+    );
+
+    const alerts = weatherResponse.data.alerts || [];
+
+    let message = `Alertas de clima severo para ${cityName}:\n`;
+
+    if (alerts.length > 0) {
+      alerts.forEach((alert) => {
+        message += `\n${alert.event} - ${alert.description}\n`;
+      });
+    } else {
+      message += `\nNo hay alertas de clima severo en este momento.\n`;
+    }
+
+    bot.sendMessage(chatId, message);
+  } catch (error) {
+    console.error(error);
+    bot.sendMessage(
+      chatId,
+      "No pude obtener las alertas meteorológicas. Asegúrate de que el nombre de la ciudad es correcto."
+    );
+  }
+});
+
 /* Comandos de Utilidades */
 
 // Para el comando /start
@@ -158,7 +195,7 @@ bot.onText(/\/units/, (msg) => {
   };
   bot.sendMessage(chatId, "Selecciona la unidad de medida:", opts);
 });
-
+// query callback para manejar las unidades
 bot.on("callback_query", (callbackQuery) => {
   const msg = callbackQuery.message;
   const chatId = msg.chat.id;
@@ -176,7 +213,7 @@ bot.on("callback_query", (callbackQuery) => {
     );
 
     // Editar el mensaje original para quitar el teclado
-    
+
     bot.editMessageReplyMarkup(
       { inline_keyboard: [] },
       { chat_id: chatId, message_id: msg.message_id }
@@ -206,6 +243,7 @@ bot.onText(/\/help/, (msg) => {
     /start - Inicia el bot.
     /w <Ciudad> - Obtener el clima de una ciudad.
     /f <Ciudad> - Obtener el pronostico del dia en intervalos de 3 horas.
+    /5days <Ciudad> - Obtener el pronostico de los proximos 5 dias.
     /units - Cambiar las unidades de medida.
     /currentunits - Ver la unidad de medida actual.
     /help - Mostrar ayuda.
