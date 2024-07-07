@@ -60,13 +60,22 @@ bot.onText(/\/w (.+)/, (msg, match) => {
 bot.onText(/\/f (.+)/, (msg, match) => {
   const chatId = msg.chat.id;
   const cityName = match[1];
-  const units = userPreferences[chatId] || "metric";
+
+  // Obtener las preferencias de usuario (idioma y unidades)
+  const { lang } = userPreferences[chatId] || {};
+  const { units } = userPreferences[chatId] || {};
+
+  console.log(`comando /w iniciado, idioma = ${lang}, unidad = ${units} `);
+
+  const defaultLang = lang; // Idioma predeterminado: Español
+  const defaultUnits = units || "metric"; // Unidades predeterminadas: Celsius
+
   const temperatureUnit = units === "metric" ? "°C" : "°F";
 
   // Llamar a la API de OpenWeatherMap para obtener el pronóstico por horas
   axios
     .get(
-      `http://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${weatherAPI_Key}&units=${units}&lang=es`
+      `http://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${weatherAPI_Key}&units=${defaultUnits}&lang=${defaultLang}`
     )
     .then((response) => {
       const forecastData = response.data.list.slice(0, 8);
@@ -97,13 +106,22 @@ bot.onText(/\/f (.+)/, (msg, match) => {
 bot.onText(/\/5days (.+)/, (msg, match) => {
   const chatId = msg.chat.id;
   const cityName = match[1];
-  const units = userPreferences[chatId] || "metric"; // Usar la preferencia del usuario o métrico por defecto
+
+  // Obtener las preferencias de usuario (idioma y unidades)
+  const { lang } = userPreferences[chatId] || {};
+  const { units } = userPreferences[chatId] || {};
+
+  console.log(`comando /w iniciado, idioma = ${lang}, unidad = ${units} `);
+
+  const defaultLang = lang; // Idioma predeterminado: Español
+  const defaultUnits = units || "metric"; // Unidades predeterminadas: Celsius
+
   const temperatureUnit = units === "metric" ? "°C" : "°F"; // Establecer la unidad de temperatura
 
   // Llamar a la API de OpenWeatherMap para obtener el pronóstico de 5 días
   axios
     .get(
-      `http://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${weatherAPI_Key}&units=${units}&lang=es`
+      `http://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${weatherAPI_Key}&units=${defaultUnits}&lang=${defaultLang}`
     )
     .then((response) => {
       const forecastData = response.data.list;
@@ -185,7 +203,7 @@ bot.onText(/\/alert (.+)/, async (msg, match) => {
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
-    "Hola! Soy tu bot de Clima en Telegram. Enviame el nombre de una ciudad para obtener el clima actual.\n"
+    "Hola! Soy tu bot de Clima en Telegram.\nEscribe el comando /help para ver todos los comandos disponibles\n"
   );
 });
 
@@ -361,8 +379,10 @@ bot.onText(/\/help/, (msg) => {
     /w <Ciudad> - Obtener el clima de una ciudad.
     /f <Ciudad> - Obtener el pronostico del dia en intervalos de 3 horas.
     /5days <Ciudad> - Obtener el pronostico de los proximos 5 dias.
-    /units - Cambiar las unidades de medida.
+    /setunits - Cambiar las unidades de medida.
     /currentunits - Ver la unidad de medida actual.
+    /setlang - Cambiar el idioma de respuesta.
+    /currentlang - Ver el idioma actual.
     /help - Mostrar ayuda.
     `;
   bot.sendMessage(msg.chat.id, helpMessage);
