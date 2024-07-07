@@ -21,8 +21,9 @@ Este bot de Telegram te permite obtener información actualizada sobre el clima 
 | `/f <Ciudad>` | Obtiene el pronóstico del dia en intervalos de 3 horas. |
 | `/5days <Ciudad>` | Obtiene el pronóstico de 5 días para la ciudad especificada. |
 | `/currentunits` | Podras ver la unidad actual de medida de la temperatura (°C) o (°F) |
-| `/units` | Podras elegir una unidad de medida de tu preferencia (°C) o (°F) |
-| `/lang` | Podras elegir un idioma de tu preferencia (ES, EN, JA) |
+| `/setunits` | Podras elegir una unidad de medida de tu preferencia (°C) o (°F) |
+| `/setlang` | Podras elegir un idioma de tu preferencia (ES, EN, JA) |
+| `/currentlang` | Podras ver el idioma actual.
 
 ## Instalación
 1. Clona el repositorio o descarga el codigo.
