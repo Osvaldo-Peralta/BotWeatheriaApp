@@ -1,19 +1,21 @@
 <h1>WeatheriaApp but in a Bot Telegram</h1>
 Este bot de Telegram te permite obtener información actualizada sobre el clima de diferentes ciudades utilizando la API de OpenWeatherMap.
 
+➡️ @Weatheria_bot on Telegram ⬅️
+
 # Funcionalidades
  - Consulta del Clima Actual: Obtén información detallada sobre la temperatura, humedad, velocidad del viento y descripción del clima de cualquier ciudad.
  - Consulta del Pronóstico por Horas: Obtén el pronóstico del clima por horas para las próximas 24 horas.
  - Consulta del Pronóstico de 5 Días:Obtén el pronóstico del clima para los próximos 5 días.
- - Configuración de Unidad de Medida: Elige entre _Celsius y Fahrenheit_ para la temperatura.
- - Configuracion de Idioma: Elige el idioma entre las siguitenes opciones.
+ - Configuración de Unidad de Medida: Elige entre _Celsius y Fahrenheit_ para la temperatura. (**Default is Celsius °C**)
+ - Configuracion de Idioma: Elige el idioma entre las siguitenes opciones. (**Default is Spanish**)
     - `ES : Español`
     -  `EN : English`
     -  `JA : 日本語`
 
 ## Comandos
 
-| command | desciption |
+| command | description |
 | --- | ---
 | `/start` | Inicia el bot y muestra un mensaje de bienvenida con instrucciones básicas. |
 | `/help` | Inicia el bot y muestra un mensaje de bienvenida con instrucciones básicas. |
@@ -37,7 +39,15 @@ Command to get Weather Current
 ```
 /w México
 ```
-Este comando devolverá el clima actual en México.
+This command will return the current weather in Mexico.
+
+```
+The climate in Mexico is:
+Description: clouds
+Temperature: 27.6 °C
+Humidity: 47%.
+Wind speed: 3.6 m/s 
+```
 
 ## Contribuciones
 Las contribuciones son bienvenidas. Si deseas mejorar este proyecto, por favor sigue estos pasos:
