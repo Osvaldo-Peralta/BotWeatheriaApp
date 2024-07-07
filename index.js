@@ -22,7 +22,7 @@ bot.onText(/\/w (.+)/, (msg, match) => {
   console.log(`comando /w iniciado, idioma = ${lang}, unidad = ${units} `);
 
   const defaultLang = lang; // Idioma predeterminado: Español
-  const defaultUnits = units; // Unidades predeterminadas: Celsius
+  const defaultUnits = units || "metric"; // Unidades predeterminadas: Celsius
   const temperatureUnit = defaultUnits === "metric" ? "°C" : "°F"; // Establecer la unidad de temperatura
   console.log(
     `comando /w, lenguaje definido = ${defaultLang}, unidad definida = ${defaultUnits}`
@@ -238,6 +238,7 @@ bot.onText(/\/setunits/, (msg) => {
 // Manejador para callbacks de configuración de unidades
 bot.on("callback_query", (query) => {
   const chatId = query.message.chat.id;
+  const messageId = query.message.message_id;
   const callbackData = query.data;
 
   // Manejar configuración de unidades de temperatura
@@ -262,6 +263,12 @@ bot.on("callback_query", (query) => {
       console.log(`callback units, comparacion = ${units}`);
     }
     bot.sendMessage(chatId, message);
+
+    // Editar el mensaje para eliminar el teclado
+    bot.editMessageReplyMarkup(
+      { inline_keyboard: [] },
+      { chat_id: chatId, message_id: messageId }
+    );
 
     return;
   }
@@ -288,6 +295,12 @@ bot.on("callback_query", (query) => {
       message += "日本語";
     }
     bot.sendMessage(chatId, message);
+
+    // Editar el mensaje para eliminar el teclado
+    bot.editMessageReplyMarkup(
+      { inline_keyboard: [] },
+      { chat_id: chatId, message_id: messageId }
+    );
 
     return;
   }
