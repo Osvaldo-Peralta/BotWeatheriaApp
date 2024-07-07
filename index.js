@@ -14,13 +14,23 @@ const userPreferences = {};
 bot.onText(/\/w (.+)/, (msg, match) => {
   const chatId = msg.chat.id;
   const cityName = match[1];
-  const units = userPreferences[chatId] || "metric"; // Usar la preferencia del usuario o métrico por defecto
-  const temperatureUnit = units === "metric" ? "°C" : "°F"; // Establecer la unidad de temperatura
 
+  // Obtener las preferencias de usuario (idioma y unidades)
+  const { lang } = userPreferences[chatId] || {};
+  const { units } = userPreferences[chatId] || {};
+
+  console.log(`comando /w iniciado, idioma = ${lang}, unidad = ${units} `);
+
+  const defaultLang = lang; // Idioma predeterminado: Español
+  const defaultUnits = units; // Unidades predeterminadas: Celsius
+  const temperatureUnit = defaultUnits === "metric" ? "°C" : "°F"; // Establecer la unidad de temperatura
+  console.log(
+    `comando /w, lenguaje definido = ${defaultLang}, unidad definida = ${defaultUnits}`
+  );
   // Llamar a la API de OpenWeatherMap para obtener el clima
   axios
     .get(
-      `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${weatherAPI_Key}&units=${units}&lang=es`
+      `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${weatherAPI_Key}&units=${defaultUnits}&lang=${defaultLang}`
     )
     .then((response) => {
       const weatherData = response.data;
@@ -28,9 +38,10 @@ bot.onText(/\/w (.+)/, (msg, match) => {
       const temperature = weatherData.main.temp;
       const humidity = weatherData.main.humidity;
       const windSpeed = weatherData.wind.speed;
+      const countryCode = weatherData.sys.country;
 
       const message = `
-          El clima en ${cityName} es:\nDescripción: ${weatherDescription}\nTemperatura: ${temperature}${temperatureUnit}\nHumedad: ${humidity}%\nVelocidad del viento: ${windSpeed} m/s\n
+          El clima en ${cityName} ${countryCode} es:\nDescripción: ${weatherDescription}\nTemperatura: ${temperature} ${temperatureUnit}\nHumedad: ${humidity}%\nVelocidad del viento: ${windSpeed} m/s\n
         `;
 
       bot.sendMessage(chatId, message);
@@ -130,6 +141,7 @@ bot.onText(/\/5days (.+)/, (msg, match) => {
     });
 });
 
+// El comando de alertas no funciona debido a mi plan de suscripcion a la API
 bot.onText(/\/alert (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const cityName = match[1];
@@ -173,73 +185,165 @@ bot.onText(/\/alert (.+)/, async (msg, match) => {
 bot.onText(/\/start/, (msg) => {
   bot.sendMessage(
     msg.chat.id,
-    "Hola! Soy tu bot de Clima en Telegram. Enviame el nombre de una ciudad para obtener el clima actual.\nPrueba el comando /help para mas información.\nPuedes ver el clima de una ciudad con el comando /w <Ciudad>\n/f <Ciudad> - Para obtener el pronóstico por horas de una ciudad"
+    "Hola! Soy tu bot de Clima en Telegram. Enviame el nombre de una ciudad para obtener el clima actual.\n"
   );
 });
 
 // Manejador para el comando /units seguido de las unidades (metric o imperial)
 /* Cambio de leer texto a "escuchar si uno de los botones es seleccionado" */
-bot.onText(/\/units/, (msg) => {
+
+// Manejador para el comando /setlang
+bot.onText(/\/setlang/, (msg) => {
   const chatId = msg.chat.id;
 
-  // Enviar botones para seleccionar unidades
-  const opts = {
+  // Teclado para seleccionar el idioma
+  const keyboard = {
     reply_markup: {
       inline_keyboard: [
         [
-          { text: "Celsius (°C)", callback_data: "units_metric" },
-          { text: "Fahrenheit (°F)", callback_data: "units_imperial" },
+          { text: "Español", callback_data: "setlang_es" },
+          { text: "English", callback_data: "setlang_en" },
+          { text: "日本語", callback_data: "setlang_ja" },
         ],
       ],
     },
   };
-  bot.sendMessage(chatId, "Selecciona la unidad de medida:", opts);
+
+  bot.sendMessage(chatId, "Selecciona tu idioma preferido:", keyboard);
 });
-// query callback para manejar las unidades
-bot.on("callback_query", (callbackQuery) => {
-  const msg = callbackQuery.message;
+
+// Manejador para el comando /setunits
+bot.onText(/\/setunits/, (msg) => {
   const chatId = msg.chat.id;
-  const data = callbackQuery.data;
 
-  if (data === "units_metric" || data === "units_imperial") {
-    const units = data === "units_metric" ? "metric" : "imperial"; // recibimos la unidad de medida
+  // Teclado para seleccionar las unidades de temperatura
+  const keyboard = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: "Celsius", callback_data: "setunits_metric" },
+          { text: "Fahrenheit", callback_data: "setunits_imperial" },
+        ],
+      ],
+    },
+  };
 
-    // Guardar la preferencia del usuario
-    userPreferences[chatId] = units;
-    const unitText = units === "metric" ? "Celsius (°C)" : "Farenheit (°F)";
-    bot.sendMessage(
-      chatId,
-      `Preferencia de unidades actualizada a ${unitText}.`
-    );
+  bot.sendMessage(
+    chatId,
+    "Selecciona tus unidades de temperatura preferidas:",
+    keyboard
+  );
+});
 
-    // Editar el mensaje original para quitar el teclado
+// Manejador para callbacks de configuración de unidades
+bot.on("callback_query", (query) => {
+  const chatId = query.message.chat.id;
+  const callbackData = query.data;
 
-    bot.editMessageReplyMarkup(
-      { inline_keyboard: [] },
-      { chat_id: chatId, message_id: msg.message_id }
-    );
-  } else {
-    bot.sendMessage(chatId, "Unidades no válidas. Usa 'metric' o 'imperial'.");
+  // Manejar configuración de unidades de temperatura
+  if (callbackData.startsWith("setunits_")) {
+    const units = callbackData.replace("setunits_", "");
+
+    console.log(`callback unidades, unidad seleccionada = ${units}`);
+
+    // Actualizar la preferencia de unidades de temperatura del usuario
+    userPreferences[chatId] = userPreferences[chatId] || {};
+    userPreferences[chatId].units = units;
+
+    console.log(`callback unidades, unidad almacenada = ${units}`);
+
+    // Confirmar al usuario la actualización de las unidades
+    let message = `Unidades de temperatura configuradas a `;
+    if (units === "metric") {
+      message += "Celsius";
+      console.log(`callback units, comparacion = ${units}`);
+    } else if (units === "imperial") {
+      message += "Fahrenheit";
+      console.log(`callback units, comparacion = ${units}`);
+    }
+    bot.sendMessage(chatId, message);
+
+    return;
+  }
+
+  if (callbackData.startsWith("setlang_")) {
+    const lang = callbackData.replace("setlang_", "");
+
+    console.log(`callback idioma, idioma seleccionado = ${lang}`);
+
+    // Actualizar la preferencia de unidades de temperatura del usuario
+    userPreferences[chatId] = userPreferences[chatId] || {};
+    userPreferences[chatId].lang = lang;
+
+    console.log(`callback idioma, idioma almacenado = ${lang}`);
+
+    // Configurar al usuario la actualizacion del idioma
+
+    let message = `Idioma configurado a `;
+    if (lang === "es") {
+      message += "Español";
+    } else if (lang === "en") {
+      message += "Ingles";
+    } else if (lang === "ja") {
+      message += "日本語";
+    }
+    bot.sendMessage(chatId, message);
+
+    return;
   }
 });
 
 // Manejador para el comando /currentunits
 bot.onText(/\/currentunits/, (msg) => {
   const chatId = msg.chat.id;
-  const units = userPreferences[chatId] || "metric";
-  bot.sendMessage(
-    chatId,
-    `La unidad de medida actual es: ${
-      units === "metric" ? "Métrico (°C)" : "Imperial (°F)"
-    }.`
-  );
+
+  // Obtener las preferencias de usuario (unidades)
+  const { units } = userPreferences[chatId] || {};
+
+  console.log(`Comando /currentunits = ${units}`);
+
+  let message = "Tus unidades de temperatura actuales son: ";
+  if (units) {
+    if (units === "metric") {
+      message += "Celsius °C";
+    } else if (units === "imperial") {
+      message += "Fahrenheit °F";
+    }
+  } else {
+    message += " No has configurado tus unidades de temperatura aún.";
+    console.log(`comando /currentunits, nada seleccionado = ${units}`);
+  }
+
+  bot.sendMessage(chatId, message);
+});
+
+bot.onText(/\/currentlang/, (msg) => {
+  const chatId = msg.chat.id;
+  // Obtener las preferencias de usuario (idioma)
+  const { lang } = userPreferences[chatId] || {};
+  const currentlang = lang || "es";
+
+  let message = "Tus unidades de temperatura actuales son:";
+  if (currentlang) {
+    if (currentlang === "es") {
+      message += " Español";
+    } else if (currentlang === "en") {
+      message += " English";
+    } else if (currentlang === "ja") {
+      message += " 日本語";
+    }
+  } else {
+    message += " No has configurado tu idioma preferido aun";
+  }
+
+  bot.sendMessage(chatId, message);
 });
 
 // Manejador para el comando /help
 
 bot.onText(/\/help/, (msg) => {
   const helpMessage = `
-    Comandos Disponibles: 
+    Comandos Disponibles:\n 
     /start - Inicia el bot.
     /w <Ciudad> - Obtener el clima de una ciudad.
     /f <Ciudad> - Obtener el pronostico del dia en intervalos de 3 horas.
@@ -249,4 +353,12 @@ bot.onText(/\/help/, (msg) => {
     /help - Mostrar ayuda.
     `;
   bot.sendMessage(msg.chat.id, helpMessage);
+});
+
+// Comando /settings - Ejemplo de comando adicional
+bot.onText(/\/settings/, (msg) => {
+  bot.sendMessage(
+    msg.chat.id,
+    "Ajustes: Aquí puedes configurar tus preferencias."
+  );
 });
