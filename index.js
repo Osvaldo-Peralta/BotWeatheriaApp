@@ -4,6 +4,8 @@ const axios = require("axios");
 // Coloca aquí tu API token
 const token = process.env.TOKEN;
 const weatherAPI_Key = process.env.WEATHER_API_KEY;
+const fs = require("fs");
+const messages = JSON.parse(fs.readFileSync("messages.json", "utf-8"));
 const bot = new TelegramBot(token, { polling: true });
 
 // Variable para almacenar las preferencias de unidades de los usuarios
@@ -21,7 +23,7 @@ bot.onText(/\/w (.+)/, (msg, match) => {
 
   console.log(`comando /w iniciado, idioma = ${lang}, unidad = ${units} `);
 
-  const defaultLang = lang; // Idioma predeterminado: Español
+  const defaultLang = lang || "es"; // Idioma predeterminado: Español
   const defaultUnits = units || "metric"; // Unidades predeterminadas: Celsius
   const temperatureUnit = defaultUnits === "metric" ? "°C" : "°F"; // Establecer la unidad de temperatura
   console.log(
@@ -40,18 +42,13 @@ bot.onText(/\/w (.+)/, (msg, match) => {
       const windSpeed = weatherData.wind.speed;
       const countryCode = weatherData.sys.country;
 
-      const message = `
-          El clima en ${cityName} ${countryCode} es:\nDescripción: ${weatherDescription}\nTemperatura: ${temperature} ${temperatureUnit}\nHumedad: ${humidity}%\nVelocidad del viento: ${windSpeed} m/s\n
-        `;
+      const message = `${messages[defaultLang].description}: ${weatherDescription}\n${messages[defaultLang].temperature}: ${temperature}${temperatureUnit}\n${messages[defaultLang].humidity}: ${humidity}%\n${messages[defaultLang].wind_speed}: ${windSpeed} m/s`;
 
       bot.sendMessage(chatId, message);
     })
     .catch((error) => {
       console.error(error);
-      bot.sendMessage(
-        chatId,
-        "No pude obtener el clima. Asegúrate de que el nombre de la ciudad es correcto."
-      );
+      bot.sendMessage(chatId, `${messages[defaultLang].error_message}`);
     });
 });
 
@@ -67,7 +64,7 @@ bot.onText(/\/f (.+)/, (msg, match) => {
 
   console.log(`comando /w iniciado, idioma = ${lang}, unidad = ${units} `);
 
-  const defaultLang = lang; // Idioma predeterminado: Español
+  const defaultLang = lang || "es"; // Idioma predeterminado: Español
   const defaultUnits = units || "metric"; // Unidades predeterminadas: Celsius
 
   const temperatureUnit = units === "metric" ? "°C" : "°F";
@@ -89,16 +86,13 @@ bot.onText(/\/f (.+)/, (msg, match) => {
         const humidity = entry.main.humidity;
         const windSpeed = entry.wind.speed;
 
-        message += `${date}:\nDescripcion: ${weatherDescription}\nTemperatura: ${temperature} ${temperatureUnit}\nHumedad: ${humidity}%\nVelocidad del viento: ${windSpeed}m/s\n\n`;
+        message += `${date}:\n${messages[defaultLang].description}: ${weatherDescription}\n${messages[defaultLang].temperature}: ${temperature}${temperatureUnit}\n${messages[defaultLang].humidity}: ${humidity}%\n${messages[defaultLang].wind_speed}: ${windSpeed} m/s\n\n`;
       });
       bot.sendMessage(chatId, message);
     })
     .catch((error) => {
       console.error(error);
-      bot.sendMessage(
-        chatId,
-        "No pude obtener el pronostico.\n Asegurate que el nombre de la ciudad es correcto"
-      );
+      bot.sendMessage(chatId, `${messages[defaultLang].error_message}`);
     });
 });
 

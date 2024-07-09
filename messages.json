@@ -1,0 +1,39 @@
+{
+  "es": {
+    "description": "Descripción",
+    "temperature": "Temperatura",
+    "humidity": "Humedad",
+    "wind_speed": "Velocidad del viento",
+    "current_units": "Tus unidades de temperatura actual son:",
+    "current_lang": "Tu idioma actual es:",
+    "set_units": "Selecciona tus unidades de temperatura preferidas",
+    "set_lang": "Selecciona tu idioma preferido",
+    "units_set_to": "Unidades de temperatura configuradas a:",
+    "lang_set_to": "Idioma configurado a:",
+    "error_message": "No pude obtener el clima. Asegúrate de que el nombre de la ciudad es correcto."
+  },
+  "en": {
+    "description": "Description",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "wind_speed": "Wind Speed",
+    "current_units": "Your current temperature units are:",
+    "set_units": "Select your preferred temperature units:",
+    "set_lang": "Select your preferred language:",
+    "units_set_to": "Temperature units set to",
+    "lang_set_to": "Language set to",
+    "error_message": "I could not get the weather. Make sure the city name is correct."
+  },
+  "ja": {
+    "description": "説明",
+    "temperature": "温度",
+    "humidity": "湿度",
+    "wind_speed": "風速",
+    "current_units": "現在の温度単位は以下の通りです:",
+    "set_units": "お好みの温度単位を選択してください:",
+    "set_lang": "ご希望の言語をお選びください:",
+    "units_set_to": "温度単位は:",
+    "lang_set_to": "言語設定：",
+    "error_message": "天気を知ることができなかった。都市名が正しいことを確認してください。"
+  }
+}
